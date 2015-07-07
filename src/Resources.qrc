@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Resources/qml/main.qml</file>
+        <file>Resources/qml/Tweet.qml</file>
+        <file>Resources/img/favorite.png</file>
+        <file>Resources/img/retweet.png</file>
+        <file>Resources/qml/ScrollBar.qml</file>
+        <file>Resources/img/busy.png</file>
+        <file>Resources/img/scrollbar.png</file>
+        <file>Resources/img/imageMask48.png</file>
+        <file>Resources/img/favorite_hover.png</file>
+        <file>Resources/img/favorite_on.png</file>
+        <file>Resources/img/reply.png</file>
+        <file>Resources/img/reply_hover.png</file>
+        <file>Resources/img/retweet_hover.png</file>
+        <file>Resources/img/retweet_on.png</file>
+    </qresource>
+</RCC>

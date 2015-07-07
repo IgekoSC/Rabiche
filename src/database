@@ -1,0 +1,8 @@
+CREATE TABLE config (key TEXT,value TEXT);
+CREATE UNIQUE INDEX "key" ON config (key ASC);
+CREATE TABLE tweets (
+    "id" TEXT NOT NULL,
+    "json" TEXT NOT NULL,
+    "void" INTEGER NOT NULL DEFAULT (0)
+);
+CREATE UNIQUE INDEX "Ids" on tweets (id ASC);
