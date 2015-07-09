@@ -24,7 +24,7 @@ Rabiche::Rabiche(QObject *parent) : QObject(parent)
 
     onNewTweets(twitter_->tweets());
 
-    QMetaObject::invokeMethod(twitter_, "connectToStream", Q_ARG(QString, TWITTER_USER_STREAM_URI));
+//    QMetaObject::invokeMethod(twitter_, "connectToStream", Q_ARG(QString, TWITTER_USER_STREAM_URI));
 }
 
 QJsonArray Rabiche::tweets()

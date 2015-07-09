@@ -82,8 +82,31 @@ Item {
                     color: "#292F33"
                     text: tweetData["text"]
                     font.pixelSize: 14
-                    wrapMode: Text.WordWrap
+                    wrapMode: Text.Wrap
                     width: tweet.width - avatarImg.width - tweetBody.spacing - background.anchors.margins * 2
+                }
+            }
+
+            Grid {
+                id: media
+                spacing: 5
+                columns: 3
+
+                Repeater {
+                    model: ListModel {
+                        id: mediaListModel
+                    }
+                    delegate: Image {
+                            source: media_url
+                        }
+                }
+
+                Component.onCompleted: {
+                    if (tweetData["entities"]["media"] != undefined) {
+                        for (var i = (tweetData["entities"]["media"].length - 1); i >= 0; i--) {
+                            mediaListModel.append(tweetData["entities"]["media"][i]);
+                        }
+                    }
                 }
             }
 
@@ -92,109 +115,97 @@ Item {
                 height: 16
                 spacing: 10
 
-                Row {
-                    spacing: 5
+                Image {
+                    id: replyIcon
+                    height: 16
+                    width: 16
+                    source: "qrc:///Resources/img/reply.png"
 
-                    Image {
-                        id: replyIcon
-                        height: 16
-                        width: 16
-                        source: "qrc:///Resources/img/reply.png"
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onPressed: tweet.reply()
-                            hoverEnabled: true
-                            onEntered: replyIcon.source = "qrc:///Resources/img/reply_hover.png"
-                            onExited: replyIcon.source = "qrc:///Resources/img/reply.png"
-                        }
-                    }
-
-                    Text {
-                        id: numberReplies
-                        color: "#8899A6"
-                        height: 16
-                        width: 35
-                        verticalAlignment: Text.AlignVCenter
-                        font.pixelSize: 14
-                        font.bold: true
-                        text: replyCount
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onPressed: tweet.reply()
+                        hoverEnabled: true
+                        onEntered: replyIcon.source = "qrc:///Resources/img/reply_hover.png"
+                        onExited: replyIcon.source = "qrc:///Resources/img/reply.png"
                     }
                 }
 
-                Row {
-                    spacing: 5
+                Text {
+                    id: numberReplies
+                    color: "#8899A6"
+                    height: 16
+                    width: 35
+                    verticalAlignment: Text.AlignVCenter
+                    font.pixelSize: 14
+                    font.bold: true
+                    text: replyCount
+                }
 
-                    Image {
-                        id: retweetIcon
-                        height: 16
-                        width: 16
-                        source: {
-                            if (tweetData["retweeted"] === true) {
-                                "qrc:///Resources/img/retweet_on.png"
-                            } else {
-                                "qrc:///Resources/img/retweet.png"
-                            }
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onPressed: tweet.retweet()
-                            hoverEnabled: true
-                            onEntered: retweetIcon.source = "qrc:///Resources/img/retweet_hover.png"
-                            onExited: retweetIcon.source = "qrc:///Resources/img/retweet.png"
+                Image {
+                    id: retweetIcon
+                    height: 16
+                    width: 16
+                    source: {
+                        if (tweetData["retweeted"] === true) {
+                            "qrc:///Resources/img/retweet_on.png"
+                        } else {
+                            "qrc:///Resources/img/retweet.png"
                         }
                     }
 
-                    Text {
-                        id: numberRetweets
-                        color: "#8899A6"
-                        height: 16
-                        width: 35
-                        verticalAlignment: Text.AlignVCenter
-                        font.pixelSize: 14
-                        font.bold: true
-                        text: tweetData["retweet_count"]
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onPressed: tweet.retweet()
+                        hoverEnabled: true
+                        onEntered: retweetIcon.source = "qrc:///Resources/img/retweet_hover.png"
+                        onExited: retweetIcon.source = "qrc:///Resources/img/retweet.png"
                     }
                 }
 
-                Row {
-                    spacing: 5
+                Text {
+                    id: numberRetweets
+                    color: "#8899A6"
+                    height: 16
+                    width: 35
+                    verticalAlignment: Text.AlignVCenter
+                    font.pixelSize: 14
+                    font.bold: true
+                    text: tweetData["retweet_count"]
+                }
 
-                    Image {
-                        id: favoriteIcon
-                        height: 16
-                        width: 16
-                        source: {
-                            if (tweetData["favorited"] === true) {
-                                "qrc:///Resources/img/favorite_on.png"
-                            } else {
-                                "qrc:///Resources/img/favorite.png"
-                            }
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onPressed: tweet.favorite()
-                            hoverEnabled: true
-                            onEntered: favoriteIcon.source = "qrc:///Resources/img/favorite_hover.png"
-                            onExited: favoriteIcon.source = "qrc:///Resources/img/favorite.png"
+                Image {
+                    id: favoriteIcon
+                    height: 16
+                    width: 16
+                    source: {
+                        if (tweetData["favorited"] === true) {
+                            "qrc:///Resources/img/favorite_on.png"
+                        } else {
+                            "qrc:///Resources/img/favorite.png"
                         }
                     }
 
-                    Text {
-                        id: numberFavorites
-                        color: "#8899A6"
-                        height: 16
-                        width: 35
-                        verticalAlignment: Text.AlignVCenter
-                        font.pixelSize: 14
-                        font.bold: true
-                        text: tweetData["favorite_count"]
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onPressed: tweet.favorite()
+                        hoverEnabled: true
+                        onEntered: favoriteIcon.source = "qrc:///Resources/img/favorite_hover.png"
+                        onExited: favoriteIcon.source = "qrc:///Resources/img/favorite.png"
                     }
+                }
+
+                Text {
+                    id: numberFavorites
+                    color: "#8899A6"
+                    height: 16
+                    width: 35
+                    verticalAlignment: Text.AlignVCenter
+                    font.pixelSize: 14
+                    font.bold: true
+                    text: tweetData["favorite_count"]
                 }
             }
         }
