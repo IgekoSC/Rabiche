@@ -93,24 +93,43 @@ ApplicationWindow {
         onNewTweets: {
             insertNewTweets();
         }
+        onNewOfflineTweets: {
+            insertOfflineTweets();
+        }
     }
 
     property var tweetsIndex: ({});
     property var replies: ({});
 
     Component.onCompleted: {
-        insertNewTweets();
+        insertNewTweets()
     }
 
-    function insertNewTweets() {
-        var newTweets = rabiche.tweets();
-        for (var i = (newTweets.length - 1); i >= 0; i--) {
-            var data = newTweets[i];
-            insertTweet(data);
+    Component.onDestruction: {
+        rabiche.end()
+    }
+
+    function insertOfflineTweets() {
+        var offlineTweets = rabiche.getNewOfflineTweets();
+
+        var index = 0;
+        for (index = (tweetsListModel.count - 1); (index >= 0) && (tweetsListModel.get(index)["tweetData"]["id_str"] < offlineTweets[0]["id_str"]); index--) ;
+
+        for (var i = (offlineTweets.length - 1); i >= 0; i--) {
+            var data = offlineTweets[i];
+            insertTweet(index, data);
         }
     }
 
-    function insertTweet(data) {
+    function insertNewTweets() {
+        var newTweets = rabiche.getNewTweets();
+        for (var i = (newTweets.length - 1); i >= 0; i--) {
+            var data = newTweets[i];
+            insertTweet(0, data);
+        }
+    }
+
+    function insertTweet(idx, data) {
         var idStr = data["id_str"];
 
         if (tweetsIndex[idStr]) {
@@ -120,11 +139,11 @@ ApplicationWindow {
         } else {
             //Insert new tweet
             var inReplyToStatusIdStr = data["in_reply_to_status_id_str"];
-            if (!inReplyToStatusIdStr) {
-                tweetsListModel.insert(0, {tweetData: data, replyCount: 0});
+            if (inReplyToStatusIdStr === null) {
+                tweetsListModel.insert(idx, {tweetData: data, replyCount: 0});
                 tweetsIndex[idStr] = tweetsListModel.count;
             } else {
-                tweetsListModel.insert(0, {tweetData: data, replyCount: 1});
+                tweetsListModel.insert(idx, {tweetData: data, replyCount: 1});
                 tweetsIndex[idStr] = tweetsListModel.count;
                 if (!replies[inReplyToStatusIdStr])
                     replies[inReplyToStatusIdStr] = {};

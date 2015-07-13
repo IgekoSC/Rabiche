@@ -3,6 +3,8 @@ TEMPLATE = app
 
 QT += qml quick widgets sql network
 
+CONFIG += c++11
+
 SOURCES += main.cpp \
     tweet.cpp \
     twitter.cpp \

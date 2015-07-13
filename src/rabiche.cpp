@@ -11,6 +11,7 @@ Rabiche::Rabiche(QObject *parent) : QObject(parent)
     twitter_->moveToThread(thread_);
 
     connect(twitter_, SIGNAL(newTweets(TweetsMap)), this, SLOT(onNewTweets(TweetsMap)));
+    connect(twitter_, SIGNAL(newOfflineTweets(TweetsMap)), this, SLOT(onNewOfflineTweets(TweetsMap)));
 
     QMetaObject::invokeMethod(twitter_, "login");
 
@@ -24,10 +25,26 @@ Rabiche::Rabiche(QObject *parent) : QObject(parent)
 
     onNewTweets(twitter_->tweets());
 
-//    QMetaObject::invokeMethod(twitter_, "connectToStream", Q_ARG(QString, TWITTER_USER_STREAM_URI));
+    QMetaObject::invokeMethod(twitter_, "connectToStream", Q_ARG(QString, TWITTER_USER_STREAM_URI));
 }
 
-QJsonArray Rabiche::tweets()
+Rabiche::~Rabiche()
+{
+
+}
+
+void Rabiche::end()
+{
+    twitter_->loguout();
+
+    thread_->quit();
+    while (thread_->isRunning())
+        QThread::msleep(1);
+
+    twitter_->deleteLater();
+}
+
+QJsonArray Rabiche::getNewTweets()
 {
     QJsonArray tweets = newTweets_;
     newTweets_ = QJsonArray();
@@ -35,17 +52,28 @@ QJsonArray Rabiche::tweets()
     return tweets;
 }
 
-const QJsonArray &Rabiche::allTweets()
+QJsonArray Rabiche::getNewOfflineTweets()
 {
-    return allTweets_;
+    QJsonArray tweets = offlineTweets_;
+    offlineTweets_ = QJsonArray();
+
+    return tweets;
 }
 
 void Rabiche::onNewTweets(TweetsMap tweets)
 {
     foreach (Tweet tweet, tweets) {
-        allTweets_.push_front(tweet.jsonObj());
         newTweets_.push_front(tweet.jsonObj());
     }
 
     emit newTweets();
+}
+
+void Rabiche::onNewOfflineTweets(TweetsMap tweets)
+{
+    foreach (Tweet tweet, tweets) {
+        offlineTweets_.push_front(tweet.jsonObj());
+    }
+
+    emit newOfflineTweets();
 }

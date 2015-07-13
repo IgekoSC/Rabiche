@@ -22,6 +22,9 @@ Twitter::Twitter(QString name, QObject *parent) :
 
     refreshTimer_ = 0;
     lastRefreshedTweetId_ = 0;
+
+    oldest_id_ = 0;
+    newest_id_ = 0;
 }
 
 Twitter::~Twitter()
@@ -34,47 +37,6 @@ const TweetsMap &Twitter::tweets()
     QMutexLocker locker(&mutex_);
 
     return tweets_;
-}
-
-const TweetsMap &Twitter::homeTimeline(qint64 max_id, qint64 since_id, int count)
-{
-    QMutexLocker locker(&mutex_);
-
-    QMap<QString, QString> params;
-    if (max_id > 0) {
-        params.insert("max_id", QString::number(max_id));
-    }
-    if (since_id > 0) {
-        params.insert("since_id", QString::number(since_id));
-    }
-    params.insert("count", QString::number(count));
-
-    QJsonArray jsonTweets = QJsonDocument::fromJson(req_->doAuthorizedRequest(shr_, "https://api.twitter.com/1.1/statuses/home_timeline.json", params)).array();
-
-    TweetsMap tweets;
-    foreach (QJsonValue jsonTweet, jsonTweets) {
-        Tweet tweet(jsonTweet.toObject());
-        tweets.insert(tweet.id(), tweet);
-        tweets_.insert(tweet.id(), tweet);
-    }
-
-    updateTweetsDb(tweets);
-
-    return tweets_;
-}
-
-const qint64 &Twitter::oldest_id()
-{
-    QMutexLocker locker(&mutex_);
-
-    return oldest_id_;
-}
-
-const qint64 &Twitter::newest_id()
-{
-    QMutexLocker locker(&mutex_);
-
-    return newest_id_;
 }
 
 void Twitter::login()
@@ -99,30 +61,36 @@ void Twitter::login()
     //Setup database
     ConecToDb(db_, "rabiche_" + objectName() + "_db");
     settings_ = new SqlSettings(&db_, this);
-    db_.exec("CREATE TABLE IF NOT EXISTS tweets ("
-              "id TEXT NOT NULL,"
-              "json TEXT NOT NULL"
-              ");");
-    db_.exec("CREATE UNIQUE INDEX IF NOT EXISTS \"Ids\" ON tweets (id DESC);");
+    db_.exec("CREATE TABLE IF NOT EXISTS newestIds ("
+             "id TEXT NOT NULL"
+             ");");
+    db_.exec("CREATE UNIQUE INDEX IF NOT EXISTS \"newestIdsIdx\" ON newestIds (id DESC);");
+
+    //Setup storage
+    dataDir_ = QDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+    cacheJsonDir_ = QDir(dataDir_.path() + "/cache_" + objectName() + "/tweets/json");
+    cacheMediaDir_ = QDir(dataDir_.path() + "/cache_" + objectName() + "/tweets/media");
+    dataDir_.mkpath(cacheJsonDir_.path());
+    dataDir_.mkpath(cacheMediaDir_.path());
 
     //Auth
-    auth_ = new O1Twitter("qv9DUeDWumhUydA2TDnj7zPk3", "UO5zz7oVRvrs9USUF7HU52usdqXpYH5Wp6Zs4MelSPTQYtNp8a", settings_, this);
+    auth_ = new O1Twitter(TWITTER_CUSTOMER_KEY, TWITTER_CUSTOMER_SECRET, settings_, this);
     req_  = new SignedRequester(auth_, this);
 
     //Recover all tweets from cache
-    QSqlQuery query = db_.exec("SELECT * FROM tweets;");
-    while (query.next()) {
-        Tweet tweet(QJsonDocument::fromJson(GetField(query, "json").toByteArray()).object());
+    QStringList fileNames = cacheJsonDir_.entryList(QDir::Files);
+    foreach (QString fileName, fileNames) {
+        QFile file(cacheJsonDir_.filePath(fileName));
+        file.open(QFile::ReadOnly);
+        Tweet tweet(QJsonDocument::fromJson(qUncompress(file.readAll())).object());
         tweets_.insert(tweet.id(), tweet);
+        file.close();
     }
-    if (tweets_.size() > 0) {
-        newest_id_  = tweets_.last().id() + 1;
-        oldest_id_ = tweets_.first().id();
+
+    updateIds();
+    if (!tweets_.empty())
         lastRefreshedTweetId_ = tweets_.first().id();
-    } else {
-        newest_id_  = 0;
-        oldest_id_ = 0;
-    }
+
     traceDebug() << QString::number(tweets_.size()) + " twitts loaded." << flush;
 
     //Initialize stream listener
@@ -162,6 +130,17 @@ void Twitter::loguout()
     tweets_.clear();
 
     lastRefreshedTweetId_ = 0;
+
+    if (newest_id_ != 0)
+        db_.exec("INSERT OR REPLACE INTO newestIds (id) VALUES ('" + QString::number(newest_id_) + "');");
+
+    oldest_id_ = 0;
+    newest_id_ = 0;
+
+    if (db_.isOpen()) {
+        db_.commit();
+        db_.close();
+    }
 }
 
 void Twitter::connectToStream(QString uri)
@@ -188,13 +167,10 @@ void Twitter::onStreamNewTweets()
         tweets_.insert(tweet.id(), tweet);
     }
 
-    if (!tweets_.empty()) {
-        newest_id_  = tweets_.first().id() + 1;
-        oldest_id_ = tweets_.last().id();
-    }
+    updateIds();
 
     //Store all tweets to db
-    updateTweetsDb(tweets);
+    updateTweetsCache(tweets);
 
     if (lastRefreshedTweetId_ == 0)
         lastRefreshedTweetId_ = tweets_.first().id();
@@ -206,12 +182,74 @@ void Twitter::onRefreshTimerTimeout()
 {
     QMutexLocker locker(&mutex_);
 
+    if (tweets_.empty())
+        return;
+
+    updateTweetsData();
+
+    recoverOfflineTweets();
+}
+
+unsigned char Twitter::streamConnectionState()
+{
+    QMutexLocker locker(&mutex_);
+    return streamConnectionState_;
+}
+
+unsigned char Twitter::loginState()
+{
+    QMutexLocker locker(&mutex_);
+    return loginState_;
+}
+
+QJsonArray Twitter::homeTimeline(qint64 max_id, qint64 since_id, int count)
+{
+    QMap<QString, QString> params;
+    if (max_id > 0) {
+        params.insert("max_id", QString::number(max_id));
+    }
+    if (since_id > 0) {
+        params.insert("since_id", QString::number(since_id));
+    }
+    params.insert("count", QString::number(count));
+
+    QJsonArray jsonTweets = QJsonDocument::fromJson(req_->doAuthorizedRequest(shr_, TWITTER_HOME_TIMELINE, params)).array();
+
+    return jsonTweets;
+}
+
+void Twitter::updateTweetsCache(const TweetsMap &tweets)
+{
+    if (tweets.size() == 0)
+        return;
+
+    foreach (Tweet tweet, tweets) {
+        QFile file(cacheJsonDir_.filePath(tweet.idStr()+".json.gz"));
+        file.open(QFile::WriteOnly | QFile::Truncate);
+        file.write(qCompress(QJsonDocument(tweet.jsonObj()).toJson()));
+        file.close();
+    }
+}
+
+void Twitter::updateIds()
+{
+    if (tweets_.empty()) {
+        newest_id_ = 0;
+        oldest_id_ = 0;
+    } else {
+        newest_id_ = tweets_.first().id();
+        oldest_id_ = tweets_.last().id();
+    }
+}
+
+void Twitter::updateTweetsData()
+{
     //Get up to 6 x 100 tweets to update status
     TweetsMap tweets;
-    TweetsMap::iterator it = tweets_.find(lastRefreshedTweetId_);
     for (int i = 0; (i < 6) && (lastRefreshedTweetId_ != tweets_.last().id()); ++i) {
         //Get up to 100 tweets to update status
         QStringList ids;
+        TweetsMap::iterator it = tweets_.find(lastRefreshedTweetId_);
         for (int j = 0; (j < 100) && (it != tweets_.end()); ++j) {
             ids.push_back(it.value().idStr());
             it++;
@@ -227,46 +265,46 @@ void Twitter::onRefreshTimerTimeout()
         }
     }
 
-    if (lastRefreshedTweetId_ == tweets_.last().id()) {
+    if (lastRefreshedTweetId_ == tweets_.last().id())
         lastRefreshedTweetId_ = tweets_.first().id();
+
+    if (!tweets.empty()) {
+        updateTweetsCache(tweets);
+        emit newTweets(tweets);
     }
-
-    updateTweetsDb(tweets);
-
-    emit newTweets(tweets);
 }
 
-unsigned char Twitter::streamConnectionState()
+void Twitter::recoverOfflineTweets()
 {
-    QMutexLocker locker(&mutex_);
-    return streamConnectionState_;
-}
+    TweetsMap tweets;
+    qint64 newestId = 0;
 
-unsigned char Twitter::loginState()
-{
-    QMutexLocker locker(&mutex_);
-    return loginState_;
-}
-
-void Twitter::updateTweetsDb(const TweetsMap &tweets)
-{
-    if (tweets.size() == 0)
+    //Recover all tweets from cache
+    QSqlQuery query = db_.exec("SELECT * FROM newestIds;");
+    if (query.next()) {
+        newestId = GetField(query, "id").toString().toLongLong();
+    } else {
         return;
-    //Construct query
-    QString query = "INSERT OR REPLACE INTO 'tweets' SELECT ? AS 'id', ? AS 'json'";
-    for (int i = 1; i < tweets.size(); ++i){
-        query += " UNION SELECT ?, ?";
     }
-    //Bind values
-    QSqlQuery q(db_);
-    q.prepare(query);
-    foreach (Tweet tweet, tweets) {
-        q.addBindValue(tweet.idStr());
-        q.addBindValue(QJsonDocument(tweet.jsonObj()).toJson());
+
+    //Get up to 200 tweets from home timeline
+    QJsonArray arr = homeTimeline(0, newestId);
+    for (int i = arr.count() - 1; i >= 0; --i){
+        Tweet tweet(arr[i].toObject());
+        if (tweets_.contains(tweet.id())) {
+            db_.exec("DELETE FROM newestIds WHERE (id='" + QString::number(newestId) + "');");
+            break;
+        } else {
+            tweets.insert(tweet.id(), tweet);
+            tweets_.insert(tweet.id(), tweet);
+        }
     }
-    //Exec query and check for errors
-    q.exec();
-    if (q.lastError().type() != QSqlError::NoError) {
-        traceDebug() << "Error: " << q.lastQuery() << q.lastError().text();
+
+    updateIds();
+
+    if (!tweets.empty()) {
+        traceDebug() << "New offline tweets";
+        updateTweetsCache(tweets);
+        emit newOfflineTweets(tweets);
     }
 }

@@ -10,21 +10,26 @@ class Rabiche : public QObject
     Q_OBJECT
 public:
     explicit Rabiche(QObject *parent = 0);
-    Q_INVOKABLE QJsonArray tweets();
-    Q_INVOKABLE const QJsonArray& allTweets();
+    ~Rabiche();
+    Q_INVOKABLE void end();
+    Q_INVOKABLE QJsonArray getNewTweets();
+    Q_INVOKABLE QJsonArray getNewOfflineTweets();
 
 signals:
     void newTweets();
-    void tweetDeleted();
+    void deletedTweets();
+    void newOfflineTweets();
 
 private slots:
     void onNewTweets(TweetsMap tweet);
+    void onNewOfflineTweets(TweetsMap tweets);
 
 private:
     Twitter* twitter_;
     QThread* thread_;
-    QJsonArray allTweets_;
     QJsonArray newTweets_;
+    QJsonArray offlineTweets_;
+    QJsonArray deletedTweets_;
 
 };
 

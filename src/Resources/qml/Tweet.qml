@@ -35,7 +35,7 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
-                        onPressed: tweet.userDetails()
+                        onClicked: tweet.userDetails()
                     }
                 }
 
@@ -50,7 +50,7 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
-                        onPressed: tweet.userDetails()
+                        onClicked: tweet.userDetails()
                     }
                 }
             }
@@ -65,15 +65,16 @@ Item {
                     width: 48
                     height: 48
 
-                    Image {
+                    BorderImage {
+                        source: "qrc:/Resources/img/borderRoundedCorners_5.png"
                         anchors.fill: parent
-                        source: "qrc:/Resources/img/imageMask48.png"
+                        border {top: 5; bottom: 5; left: 5; right: 5}
                     }
 
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
-                        onPressed: tweet.userDetails()
+                        onClicked: tweet.userDetails()
                     }
                 }
 
@@ -87,17 +88,40 @@ Item {
                 }
             }
 
-            Grid {
+            Column {
                 id: media
                 spacing: 5
-                columns: 3
 
                 Repeater {
                     model: ListModel {
                         id: mediaListModel
                     }
                     delegate: Image {
+                            id: img
                             source: media_url
+                            fillMode: Image.PreserveAspectCrop
+                            height: Math.min(253, sourceSize.height)
+
+                            BorderImage {
+                                id: img_border
+                                source: "qrc:/Resources/img/borderRoundedCorners_5.png"
+                                anchors.fill: parent
+                                border {top: 5; bottom: 5; left: 5; right: 5}
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    if (img.sourceSize.height == img.height) {
+                                        img.height = Math.min(253, sourceSize.height);
+                                        img_border.visible = true;
+                                    } else {
+                                        img.height = img.sourceSize.height;
+                                        img_border.visible = false;
+                                    }
+                                }
+                            }
                         }
                 }
 
@@ -124,7 +148,7 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
-                        onPressed: tweet.reply()
+                        onClicked: tweet.reply()
                         hoverEnabled: true
                         onEntered: replyIcon.source = "qrc:///Resources/img/reply_hover.png"
                         onExited: replyIcon.source = "qrc:///Resources/img/reply.png"
@@ -157,7 +181,7 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
-                        onPressed: tweet.retweet()
+                        onClicked: tweet.retweet()
                         hoverEnabled: true
                         onEntered: retweetIcon.source = "qrc:///Resources/img/retweet_hover.png"
                         onExited: retweetIcon.source = "qrc:///Resources/img/retweet.png"
@@ -190,7 +214,7 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
-                        onPressed: tweet.favorite()
+                        onClicked: tweet.favorite()
                         hoverEnabled: true
                         onEntered: favoriteIcon.source = "qrc:///Resources/img/favorite_hover.png"
                         onExited: favoriteIcon.source = "qrc:///Resources/img/favorite.png"

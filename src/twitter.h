@@ -21,6 +21,10 @@
 
 #define TWITTER_USER_STREAM_URI "https://userstream.twitter.com/1.1/user.json"
 #define TWITTER_REST_LOOKUP_URI "https://api.twitter.com/1.1/statuses/lookup.json"
+#define TWITTER_HOME_TIMELINE   "https://api.twitter.com/1.1/statuses/home_timeline.json"
+
+#define TWITTER_CUSTOMER_KEY    "qv9DUeDWumhUydA2TDnj7zPk3"
+#define TWITTER_CUSTOMER_SECRET "UO5zz7oVRvrs9USUF7HU52usdqXpYH5Wp6Zs4MelSPTQYtNp8a"
 
 class Twitter : public QObject
 {
@@ -30,9 +34,6 @@ public:
     ~Twitter();
 
     const TweetsMap &tweets();
-    const TweetsMap &homeTimeline(qint64 max_id = 0, qint64 since_id = 0, int count = 200);
-    const qint64 &oldest_id();
-    const qint64 &newest_id();
     unsigned char loginState();
     unsigned char streamConnectionState();
 
@@ -43,6 +44,7 @@ public slots:
 
 signals:
     void newTweets(TweetsMap tweets);
+    void newOfflineTweets(TweetsMap tweets);
 
 private slots:
     void onStreamNewTweets();
@@ -51,6 +53,9 @@ private slots:
 private:
     QSqlDatabase db_;
     SqlSettings* settings_;
+    QDir dataDir_;
+    QDir cacheJsonDir_;
+    QDir cacheMediaDir_;
     SynchronousHttpRequest* shr_;
     O1Twitter* auth_;
     SignedRequester* req_;
@@ -64,7 +69,11 @@ private:
     QTimer* refreshTimer_;
     qint64 lastRefreshedTweetId_;
 
-    void updateTweetsDb(const TweetsMap &tweets);
+    QJsonArray homeTimeline(qint64 max_id = 0, qint64 since_id = 0, int count = 200);
+    void updateTweetsCache(const TweetsMap &tweets);
+    void updateIds();
+    void updateTweetsData();
+    void recoverOfflineTweets();
 };
 
 #endif // TWITTER_H
