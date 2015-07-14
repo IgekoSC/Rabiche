@@ -14,6 +14,7 @@ public:
     Q_INVOKABLE void end();
     Q_INVOKABLE QJsonArray getNewTweets();
     Q_INVOKABLE QJsonArray getNewOfflineTweets();
+    Q_INVOKABLE void openUrl(QString url);
 
 signals:
     void newTweets();

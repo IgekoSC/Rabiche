@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.3
 
 Item {
     id: tweet
@@ -81,10 +81,27 @@ Item {
                 Text {
                     id: lblTweetText
                     color: "#292F33"
-                    text: tweetData["text"]
+                    text: tweetData["html_text"]
                     font.pixelSize: 14
                     wrapMode: Text.Wrap
                     width: tweet.width - avatarImg.width - tweetBody.spacing - background.anchors.margins * 2
+                    linkColor: "#72B2E4"
+
+                    MouseArea {
+                        id: linkMouseArea
+                        anchors.fill: parent;
+                        onClicked: {
+                            rabiche.openUrl(lblTweetText.hoveredLink);
+                        }
+                    }
+
+                    onLinkHovered: {
+                        if (link) {
+                            linkMouseArea.cursorShape = Qt.PointingHandCursor;
+                        } else {
+                            linkMouseArea.cursorShape = Qt.ArrowCursor;
+                        }
+                    }
                 }
             }
 

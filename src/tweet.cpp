@@ -1,4 +1,5 @@
 #include "tweet.h"
+#include <QDebug>
 
 Tweet::Tweet()
 {
@@ -10,24 +11,36 @@ Tweet::Tweet(const QJsonObject &jsonObj)
     obj_ = jsonObj;
     entities_ = TwitterEntities(obj_.value("entities").toObject());
     text_ = obj_.value("text").toString();
+    htmlText_ = text_;
     //Scape text for proper entities inclusion
     QList<TwitterEntity> entities;
     foreach (TwitterHashTag hashtag, entities_.hashtags()) {
         entities.push_back(hashtag);
+        htmlText_.replace("#" + hashtag.text(), "<a href=\"hashtag://" + hashtag.text() + "\">#" + hashtag.text() + "</a>");
     }
     foreach (TwitterMedia media, entities_.media()) {
         entities.push_back(media);
+        htmlText_.remove(media.url());
     }
     foreach (TwitterSymbol symbol, entities_.symbols()) {
         entities.push_back(symbol);
     }
     foreach (TwitterUrl url, entities_.urls()) {
         entities.push_back(url);
+        htmlText_.replace(url.url(), "<a href=\"" + url.expandedUrl() + "\">" + url.url() + "</a>");
     }
     foreach (TwitterUserMention userMention, entities_.userMentions()) {
         entities.push_back(userMention);
+        htmlText_.replace("@" + userMention.screenName(), "<a href=\"user://" + userMention.screenName() + "\">@" + userMention.screenName() + "</a>");
     }
 
+    //Add new atribute with text formated on HTML
+    //For this tweet
+    obj_.insert("html_text", htmlText_);
+    //For original tweet if it's a retweet
+    QJsonValue retweetedStatusV(obj_.value("retweeted_status"));
+    if (retweetedStatusV.isObject())
+        obj_.insert("retweeted_status", Tweet(retweetedStatusV.toObject()).jsonObj());
 }
 
 Tweet::Tweet(const Tweet &other)
@@ -35,7 +48,7 @@ Tweet::Tweet(const Tweet &other)
     obj_        = other.obj_;
     entities_   = other.entities_;
     text_       = other.text_;
-    scapedText_ = other.scapedText_;
+    htmlText_ = other.htmlText_;
 }
 
 Tweet::~Tweet()

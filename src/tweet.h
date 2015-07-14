@@ -46,7 +46,7 @@ private:
     QJsonObject obj_;
     TwitterEntities entities_;
     QString text_;
-    QString scapedText_;
+    QString htmlText_;
     bool lastOnClose_;
 
 };

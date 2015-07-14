@@ -61,6 +61,11 @@ QJsonArray Rabiche::getNewOfflineTweets()
     return tweets;
 }
 
+void Rabiche::openUrl(QString url)
+{
+    QDesktopServices::openUrl(url);
+}
+
 void Rabiche::onNewTweets(TweetsMap tweets)
 {
     foreach (Tweet tweet, tweets) {
