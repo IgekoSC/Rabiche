@@ -20,7 +20,9 @@ Twitter::Twitter(QString name, QObject *parent) :
     loginState_            = 0;
     streamConnectionState_ = 0;
 
-    refreshTimer_ = 0;
+    refreshTimer_ = new QTimer(this);
+    connect(refreshTimer_, SIGNAL(timeout()), this, SLOT(onRefreshTimerTimeout()));
+
     lastRefreshedTweetId_ = 0;
 
     oldest_id_ = 0;
@@ -29,7 +31,9 @@ Twitter::Twitter(QString name, QObject *parent) :
 
 Twitter::~Twitter()
 {
+    refreshTimer_->stop();
     loguout();
+    refreshTimer_->deleteLater();
 }
 
 const TweetsMap &Twitter::tweets()
@@ -53,10 +57,6 @@ void Twitter::login()
     //Initialize http requester and refresh timer
     if (shr_ == 0)
         shr_  = new SynchronousHttpRequest(this);
-    if (refreshTimer_ == 0) {
-        refreshTimer_ = new QTimer(this);
-        connect(refreshTimer_, SIGNAL(timeout()), this, SLOT(onRefreshTimerTimeout()));
-    }
 
     //Setup database
     ConecToDb(db_, "rabiche_" + objectName() + "_db");
@@ -104,7 +104,7 @@ void Twitter::login()
         loginState_ = 255;
 
     //Start timer for continuous refreshing from REST
-    refreshTimer_->start(60000); //1 min.
+    refreshTimer_->start(1000); //1 sec.
 }
 
 void Twitter::loguout()
@@ -121,8 +121,6 @@ void Twitter::loguout()
         stream_->stop();
         stream_->deleteLater();
     }
-    if (refreshTimer_ != 0)
-        refreshTimer_->stop();
 
     loginState_ = 0;
     streamConnectionState_ = 0;
@@ -182,12 +180,17 @@ void Twitter::onRefreshTimerTimeout()
 {
     QMutexLocker locker(&mutex_);
 
+    if (loginState_ != 1)
+        return;
+
     if (tweets_.empty())
         return;
 
     updateTweetsData();
 
     recoverOfflineTweets();
+
+    refreshTimer_->setInterval(60000); //1 min.
 }
 
 unsigned char Twitter::streamConnectionState()
@@ -237,8 +240,8 @@ void Twitter::updateIds()
         newest_id_ = 0;
         oldest_id_ = 0;
     } else {
-        newest_id_ = tweets_.first().id();
-        oldest_id_ = tweets_.last().id();
+        newest_id_ = tweets_.last().id();
+        oldest_id_ = tweets_.first().id();
     }
 }
 

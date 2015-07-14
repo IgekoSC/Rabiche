@@ -35,6 +35,7 @@ Rabiche::~Rabiche()
 
 void Rabiche::end()
 {
+//    QMetaObject::invokeMethod(twitter_, "loguout");
     twitter_->loguout();
 
     thread_->quit();

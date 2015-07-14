@@ -115,6 +115,8 @@ ApplicationWindow {
         var index = 0;
         for (index = (tweetsListModel.count - 1); (index >= 0) && (tweetsListModel.get(index)["tweetData"]["id_str"] < offlineTweets[0]["id_str"]); index--) ;
 
+        index++;
+
         for (var i = (offlineTweets.length - 1); i >= 0; i--) {
             var data = offlineTweets[i];
             insertTweet(index, data);
@@ -131,6 +133,10 @@ ApplicationWindow {
 
     function insertTweet(idx, data) {
         var idStr = data["id_str"];
+
+        if (data["retweeted_status"] !== undefined) {
+            data = data["retweeted_status"];
+        }
 
         if (tweetsIndex[idStr]) {
             //Update existing tweet

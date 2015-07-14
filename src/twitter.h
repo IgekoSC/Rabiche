@@ -67,6 +67,7 @@ private:
     unsigned char loginState_;
     unsigned char streamConnectionState_;
     QTimer* refreshTimer_;
+    unsigned char refeshCount_;
     qint64 lastRefreshedTweetId_;
 
     QJsonArray homeTimeline(qint64 max_id = 0, qint64 since_id = 0, int count = 200);
