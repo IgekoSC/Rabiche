@@ -1,5 +1,7 @@
 #include "signedrequester.h"
 
+#define traceDebug() qDebug() << QThread::currentThreadId() << __PRETTY_FUNCTION__
+
 SignedRequester::SignedRequester(O1 *o1, QObject *parent) : QObject(parent), o1_(o1)
 {
 

@@ -52,7 +52,6 @@ signals:
     void downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
     void uploadProgress(qint64 bytesSent, qint64 bytesTotal);
     void finished();
-    void readyRead();
 
 private slots:
     void onRequestFinished();

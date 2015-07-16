@@ -11,7 +11,7 @@ Tweet::Tweet(const QJsonObject &jsonObj)
     obj_ = jsonObj;
     entities_ = TwitterEntities(obj_.value("entities").toObject());
     text_ = obj_.value("text").toString();
-    htmlText_ = text_;
+    htmlText_ = text_.toHtmlEscaped();
     //Scape text for proper entities inclusion
     QList<TwitterEntity> entities;
     foreach (TwitterHashTag hashtag, entities_.hashtags()) {

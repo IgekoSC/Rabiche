@@ -198,10 +198,9 @@ void SynchronousHttpRequest::init()
 
 void SynchronousHttpRequest::makeConnections()
 {
+    connect(networkReply_, SIGNAL(readyRead()), this, SLOT(onReplyReadyRead()));
     connect(networkReply_, SIGNAL(finished()), this, SLOT(onRequestFinished()));
     connect(networkReply_, SIGNAL(finished()), this, SIGNAL(finished()));
-    connect(networkReply_, SIGNAL(readyRead()), this, SLOT(onReplyReadyRead()));
-    connect(networkReply_, SIGNAL(readyRead()), this, SIGNAL(readyRead()));
     connect(networkReply_, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(onReplyError(QNetworkReply::NetworkError)));
     connect(networkReply_, SIGNAL(downloadProgress(qint64,qint64)), this, SIGNAL(downloadProgress(qint64,qint64)));
     connect(networkReply_, SIGNAL(uploadProgress(qint64,qint64)), this, SIGNAL(uploadProgress(qint64,qint64)));
@@ -228,13 +227,14 @@ void SynchronousHttpRequest::onRequestFinished()
         multiPart_ = 0;
     }
 
-    loop_.quit();
-
+    networkReply_->disconnect();
     lastReplyRawHeaders_ = networkReply_->rawHeaderPairs();
 
-    emit finished();
+    networkReply_->deleteLater();
 
-    //networkReply_->deleteLater();
+    loop_.quit();
+
+    emit finished();
 }
 
 void SynchronousHttpRequest::onReplyReadyRead()
@@ -245,13 +245,11 @@ void SynchronousHttpRequest::onReplyReadyRead()
     } else {
         toFile_->write(networkReply_->readAll());
     }
-
-    emit readyRead();
 }
 
 void SynchronousHttpRequest::onReplyError(QNetworkReply::NetworkError err)
 {
-    traceDebug() << "NetworkError: " << networkReply_->errorString() << endl;
+    //traceDebug() << "NetworkError: " << networkReply_->errorString() << endl;
     lastError_ = err;
     lastErrorString_ = networkReply_->errorString();
     emit ReplyError(networkReply_->errorString());
