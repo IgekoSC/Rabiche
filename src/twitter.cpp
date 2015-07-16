@@ -157,7 +157,10 @@ void Twitter::connectToStream(QString uri)
 
 void Twitter::onStreamNewTweets()
 {
-    QMutexLocker locker(&mutex_);
+    if (!mutex_.tryLock(100))
+        return;
+
+    traceDebug();
 
     TweetsMap tweets = stream_->getTweets();
 
@@ -173,7 +176,11 @@ void Twitter::onStreamNewTweets()
     if (lastRefreshedTweetId_ == 0)
         lastRefreshedTweetId_ = tweets_.first().id();
 
+    traceDebug() << tweets.count() << " new tweets";
+
     emit newTweets(tweets);
+
+    mutex_.unlock();
 }
 
 void Twitter::onRefreshTimerTimeout()
@@ -247,6 +254,8 @@ void Twitter::updateIds()
 
 void Twitter::updateTweetsData()
 {
+    traceDebug();
+
     //Get up to 6 x 100 tweets to update status
     TweetsMap tweets;
     for (int i = 0; (i < 6) && (lastRefreshedTweetId_ != tweets_.last().id()); ++i) {
@@ -275,10 +284,14 @@ void Twitter::updateTweetsData()
         updateTweetsCache(tweets);
         emit newTweets(tweets);
     }
+
+    traceDebug() << tweets.count() << " tweets updated";
 }
 
 void Twitter::recoverOfflineTweets()
 {
+    traceDebug();
+
     TweetsMap tweets;
     qint64 newestId = 0;
 
@@ -287,6 +300,7 @@ void Twitter::recoverOfflineTweets()
     if (query.next()) {
         newestId = GetField(query, "id").toString().toLongLong();
     } else {
+        traceDebug() << "Nothing to recover";
         return;
     }
 
@@ -306,8 +320,9 @@ void Twitter::recoverOfflineTweets()
     updateIds();
 
     if (!tweets.empty()) {
-        traceDebug() << "New offline tweets";
         updateTweetsCache(tweets);
         emit newOfflineTweets(tweets);
     }
+
+    traceDebug() << tweets.count() << " new offline tweets loaded";
 }
