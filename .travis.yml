@@ -5,7 +5,7 @@ before_install:
 
 script:
     - source /opt/qt55/bin/qt55-env.sh
-    - qmake -qt=qt5 -v
-    - qmake -qt=qt5
+    - qmake -v
+    - qmake
     - make
 
