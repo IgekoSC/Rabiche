@@ -26,3 +26,8 @@ const QList<int> &TwitterEntity::indices()
 {
     return indices_;
 }
+
+const QJsonObject &TwitterEntity::jsonObj()
+{
+    return obj_;
+}

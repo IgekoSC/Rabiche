@@ -13,6 +13,7 @@ public:
     ~TwitterEntity();
 
     const QList<int> &indices();
+    const QJsonObject &jsonObj();
 
 protected:
     QJsonObject obj_;

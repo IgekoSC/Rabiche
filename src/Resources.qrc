@@ -14,5 +14,6 @@
         <file>Resources/img/retweet_hover.png</file>
         <file>Resources/img/retweet_on.png</file>
         <file>Resources/img/borderRoundedCorners_5.png</file>
+        <file>Resources/qml/AccountView.qml</file>
     </qresource>
 </RCC>

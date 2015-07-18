@@ -1,4 +1,5 @@
 #include "twitterentities.h"
+#include <QDebug>
 
 TwitterEntities::TwitterEntities()
 {
@@ -7,9 +8,9 @@ TwitterEntities::TwitterEntities()
 
 TwitterEntities::TwitterEntities(const QJsonObject &jsonObj)
 {
-    obj_ = jsonObj;
+    obj_ = jsonObj.value("entities").toObject();
 
-    QJsonArray array = obj_.value("media").toArray();
+    QJsonArray array = jsonObj.value("extended_entities").toObject().value("media").toArray();
     foreach (QJsonValue value, array) {
         media_.push_back(TwitterMedia(value.toObject()));
     }

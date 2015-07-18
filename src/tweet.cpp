@@ -8,29 +8,26 @@ Tweet::Tweet()
 
 Tweet::Tweet(const QJsonObject &jsonObj)
 {
+//    qDebug() << jsonObj << endl;
+
     obj_ = jsonObj;
-    entities_ = TwitterEntities(obj_.value("entities").toObject());
+    entities_ = TwitterEntities(obj_);
     text_ = obj_.value("text").toString();
     htmlText_ = text_.toHtmlEscaped();
     //Scape text for proper entities inclusion
-    QList<TwitterEntity> entities;
     foreach (TwitterHashTag hashtag, entities_.hashtags()) {
-        entities.push_back(hashtag);
         htmlText_.replace("#" + hashtag.text(), "<a href=\"hashtag://" + hashtag.text() + "\">#" + hashtag.text() + "</a>");
     }
     foreach (TwitterMedia media, entities_.media()) {
-        entities.push_back(media);
         htmlText_.remove(media.url());
     }
-    foreach (TwitterSymbol symbol, entities_.symbols()) {
-        entities.push_back(symbol);
-    }
+//    foreach (TwitterSymbol symbol, entities_.symbols()) {
+
+//    }
     foreach (TwitterUrl url, entities_.urls()) {
-        entities.push_back(url);
         htmlText_.replace(url.url(), "<a href=\"" + url.expandedUrl() + "\">" + url.url() + "</a>");
     }
     foreach (TwitterUserMention userMention, entities_.userMentions()) {
-        entities.push_back(userMention);
         htmlText_.replace("@" + userMention.screenName(), "<a href=\"user://" + userMention.screenName() + "\">@" + userMention.screenName() + "</a>");
     }
 
