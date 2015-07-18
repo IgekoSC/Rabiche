@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QGridLayout>
 #include <QLabel>
-#include "tweet.h"
+#include <Twitter/tweet.h>
 
 class TwittWidget : public QWidget
 {

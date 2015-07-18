@@ -7,7 +7,7 @@
 #include <QMutexLocker>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <tweet.h>
+#include <Twitter/tweet.h>
 
 class TwitterStream : public QObject
 {

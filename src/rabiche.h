@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QThread>
-#include <twitter.h>
+#include <Twitter/twitter.h>
 
 class Rabiche : public QObject
 {

@@ -6,17 +6,17 @@ QT += qml quick widgets sql network
 CONFIG += c++11
 
 SOURCES += main.cpp \
-    tweet.cpp \
-    twitter.cpp \
-    twitterentities.cpp \
-    twitterentity.cpp \
-    twitterhashtag.cpp \
-    twittermedia.cpp \
-    twitterstream.cpp \
-    twittersymbol.cpp \
-    twitterurl.cpp \
-    twitteruser.cpp \
-    twitterusermention.cpp \
+    Twitter/tweet.cpp \
+    Twitter/twitter.cpp \
+    Twitter/twitterentities.cpp \
+    Twitter/twitterentity.cpp \
+    Twitter/twitterhashtag.cpp \
+    Twitter/twittermedia.cpp \
+    Twitter/twitterstream.cpp \
+    Twitter/twittersymbol.cpp \
+    Twitter/twitterurl.cpp \
+    Twitter/twitteruser.cpp \
+    Twitter/twitterusermention.cpp \
     twittwidget.cpp \
     SimpleCrypt/simplecrypt.cpp \
     SqlSettings/sqlsettings.cpp \
@@ -29,17 +29,17 @@ SOURCES += main.cpp \
     rabiche.cpp
 
 HEADERS += \
-    tweet.h \
-    twitter.h \
-    twitterentities.h \
-    twitterentity.h \
-    twitterhashtag.h \
-    twittermedia.h \
-    twitterstream.h \
-    twittersymbol.h \
-    twitterurl.h \
-    twitteruser.h \
-    twitterusermention.h \
+    Twitter/tweet.h \
+    Twitter/twitter.h \
+    Twitter/twitterentities.h \
+    Twitter/twitterentity.h \
+    Twitter/twitterhashtag.h \
+    Twitter/twittermedia.h \
+    Twitter/twitterstream.h \
+    Twitter/twittersymbol.h \
+    Twitter/twitterurl.h \
+    Twitter/twitteruser.h \
+    Twitter/twitterusermention.h \
     twittwidget.h \
     SimpleCrypt/simplecrypt.h \
     SqlSettings/dbconnection.h \
