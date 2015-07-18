@@ -9,11 +9,15 @@ Item {
     signal reply ()
     signal userDetails ()
 
-    Rectangle {
+    Item {
         id: background
-        color: "white"
         anchors.fill: parent
         anchors.margins: 10
+
+        Rectangle {
+            color: "white"
+            anchors.fill: parent
+        }
 
         Column {
             id: root
@@ -114,38 +118,40 @@ Item {
                         id: mediaListModel
                     }
                     delegate: Image {
-                            id: img
-                            source: media_url
-                            fillMode: Image.PreserveAspectCrop
-                            height: Math.min(253, sourceSize.height)
+                        id: img
+                        source: media_url
+                        fillMode: Image.PreserveAspectCrop
+                        height: Math.min(253, sourceSize.height)
 
-                            BorderImage {
-                                id: img_border
-                                source: "qrc:/Resources/img/borderRoundedCorners_5.png"
-                                anchors.fill: parent
-                                border {top: 5; bottom: 5; left: 5; right: 5}
-                            }
+                        BorderImage {
+                            id: img_border
+                            source: "qrc:/Resources/img/borderRoundedCorners_5.png"
+                            anchors.fill: parent
+                            border {top: 5; bottom: 5; left: 5; right: 5}
+                        }
 
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    if (img.sourceSize.height == img.height) {
-                                        img.height = Math.min(253, sourceSize.height);
-                                        img_border.visible = true;
-                                    } else {
-                                        img.height = img.sourceSize.height;
-                                        img_border.visible = false;
-                                    }
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (img.sourceSize.height == img.height) {
+                                    img.height = Math.min(253, sourceSize.height);
+                                    img_border.visible = true;
+                                } else {
+                                    img.height = img.sourceSize.height;
+                                    img_border.visible = false;
                                 }
                             }
                         }
+                    }
                 }
 
                 Component.onCompleted: {
-                    if (tweetData["entities"]["media"] != undefined) {
-                        for (var i = (tweetData["entities"]["media"].length - 1); i >= 0; i--) {
-                            mediaListModel.append(tweetData["entities"]["media"][i]);
+                    if (tweetData["extended_entities"] != undefined) {
+                        if (tweetData["extended_entities"]["media"] != undefined) {
+                            for (var i = (tweetData["extended_entities"]["media"].length - 1); i >= 0; i--) {
+                                mediaListModel.append(tweetData["extended_entities"]["media"][i]);
+                            }
                         }
                     }
                 }
