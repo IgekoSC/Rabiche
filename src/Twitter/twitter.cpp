@@ -36,11 +36,39 @@ Twitter::~Twitter()
     refreshTimer_->deleteLater();
 }
 
-const TweetsMap &Twitter::tweets()
+const TweetsMap &Twitter::tweets(int page, int pageSize)
 {
     QMutexLocker locker(&mutex_);
 
-    return tweets_;
+    if (pageSize == 0) {
+        return tweets_;
+    } else {
+        //Inver order
+        page = tweets_.size() / pageSize - page;
+
+        //If page is not valid, return last page
+        if (page < 0)
+            return tweetsPage_;
+
+        //Get page content
+        QMapIterator<qint64, Tweet> i(tweets_);
+        int start = page * pageSize;
+        int c = 0;
+        while ((i.hasNext()) && (c < start)) {
+            i.next();
+            c++;
+        }
+        tweetsPage_.clear();
+        c = 0;
+        while ((i.hasNext()) && (c < pageSize)) {
+            Tweet tweet(i.value());
+            tweetsPage_.insert(tweet.id(), tweet);
+            i.next();
+            c++;
+        }
+
+        return tweetsPage_;
+    }
 }
 
 void Twitter::login()

@@ -33,7 +33,7 @@ public:
     explicit Twitter(QString name, QObject *parent = 0);
     ~Twitter();
 
-    const TweetsMap &tweets();
+    const TweetsMap &tweets(int page = 0, int pageSize = 0);
     unsigned char loginState();
     unsigned char streamConnectionState();
 
@@ -62,6 +62,7 @@ private:
     qint64 newest_id_;
     qint64 oldest_id_;
     TweetsMap tweets_;
+    TweetsMap tweetsPage_;
     TwitterStream* stream_;
     QMutex mutex_;
     unsigned char loginState_;
