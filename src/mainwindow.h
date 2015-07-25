@@ -16,6 +16,7 @@ public:
 
 signals:
     void newTweets();
+    void updateTweets();
     void newOfflineTweets();
 
 private slots:
@@ -27,6 +28,7 @@ private slots:
 
 private:
     bool firstTime_;
+    QThread* thread_;
     Twitter* twitter_;
     QWebView* webView_;
     QMap<QString, QVariant> htmlTweets_;

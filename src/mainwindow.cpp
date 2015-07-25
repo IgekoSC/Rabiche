@@ -5,7 +5,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     firstTime_ = true;
 
-    twitter_ = new Twitter("eliasrm87", this);
+    thread_ = new QThread(this);
+    thread_->start();
+    while (!thread_->isRunning())
+        QThread::msleep(1);
+
+    twitter_ = new Twitter("eliasrm87");
+    twitter_->moveToThread(thread_);
 
     webView_ = new QWebView(this);
     webView_->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
@@ -18,7 +24,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(twitter_, SIGNAL(newTweets(TweetsMap)), this, SLOT(onNewTweets(TweetsMap)));
     connect(twitter_, SIGNAL(newOfflineTweets(TweetsMap)), this, SLOT(onNewOfflineTweets(TweetsMap)));
 
-    twitter_->login();
+    QMetaObject::invokeMethod(twitter_, "login");
+
+    while (twitter_->loginState() == 0)
+        QThread::msleep(1);
+
+    if (twitter_->loginState() != 1) {
+        qDebug() << "Login fail: " << twitter_->loginState() << flush;
+        return;
+    }
 
     QMetaObject::invokeMethod(twitter_, "connectToStream", Q_ARG(QString, TWITTER_USER_STREAM_URI));
 
@@ -28,6 +42,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 MainWindow::~MainWindow()
 {
     twitter_->loguout();
+
+    thread_->quit();
+    while (thread_->isRunning())
+        QThread::msleep(1);
+
     twitter_->deleteLater();
 }
 
@@ -140,10 +159,11 @@ QMap<QString, QVariant> MainWindow::twittsToHtml(TweetsMap tweets)
         "                  <p>"
         "                  <p>" << tweet.htmlText() << "</p>";
         foreach (TwitterMedia media, tweet.entities().media()) {
-            ss << "        <div class=\"image\">"
-                  "           <img data-original=\"" << media.mediaUrl() << ":large\""
-                  "           src=\"qrc:/Resources/img/blank.png\" class=\"img-responsive lazy\">"
-                  "        </div>";
+            ss <<
+            "              <div class=\"image\">"
+            "                 <img data-original=\"" << media.mediaUrl() << ":large\""
+            "                 src=\"qrc:/Resources/img/blank.png\" class=\"img-responsive lazy\">"
+            "              </div>";
         }
         ss <<
         "                  <div class=\"reply\">"
