@@ -27,11 +27,18 @@ public:
     QString url();
     QString displayUrl();
     QString expandedUrl();
-    QList<TwiiterMediaSize> sizes();
     QString type();
 
+    const TwiiterMediaSize &sizeThumb() const;
+    const TwiiterMediaSize &sizeLarge() const;
+    const TwiiterMediaSize &sizeMedium() const;
+    const TwiiterMediaSize &sizeSmall() const;
+
 private:
-    QList<TwiiterMediaSize> sizes_;
+    TwiiterMediaSize sizeThumb_;
+    TwiiterMediaSize sizeLarge_;
+    TwiiterMediaSize sizeMedium_;
+    TwiiterMediaSize sizeSmall_;
 
 };
 
