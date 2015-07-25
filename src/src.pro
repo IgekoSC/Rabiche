@@ -1,7 +1,9 @@
 TARGET = rabiche
 TEMPLATE = app
 
-QT += qml quick widgets sql network
+QT += core gui sql network webkitwidgets
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++11
 
@@ -17,7 +19,6 @@ SOURCES += main.cpp \
     Twitter/twitterurl.cpp \
     Twitter/twitteruser.cpp \
     Twitter/twitterusermention.cpp \
-    twittwidget.cpp \
     SimpleCrypt/simplecrypt.cpp \
     SqlSettings/sqlsettings.cpp \
     SynchronousHttpRequest/synchronoushttprequest.cpp \
@@ -26,7 +27,8 @@ SOURCES += main.cpp \
     o1/o1.cpp \
     o1/o1twitter.cpp \
     o1/signedrequester.cpp \
-    rabiche.cpp
+    rabiche.cpp \
+    mainwindow.cpp
 
 HEADERS += \
     Twitter/tweet.h \
@@ -40,7 +42,6 @@ HEADERS += \
     Twitter/twitterurl.h \
     Twitter/twitteruser.h \
     Twitter/twitterusermention.h \
-    twittwidget.h \
     SimpleCrypt/simplecrypt.h \
     SqlSettings/dbconnection.h \
     SqlSettings/sqlsettings.h \
@@ -50,7 +51,8 @@ HEADERS += \
     o1/o1.h \
     o1/o1twitter.h \
     o1/signedrequester.h \
-    rabiche.h
+    rabiche.h \
+    mainwindow.h
 
 RESOURCES += \
     Resources.qrc

@@ -1,6 +1,8 @@
 #include "twitterstream.h"
 #include <QDebug>
 
+#define traceDebug() qDebug() << QThread::currentThreadId() << __PRETTY_FUNCTION__
+
 TwitterStream::TwitterStream(O1 *o1, QObject *parent) :
     QObject(parent), o1_(o1)
 {
@@ -74,7 +76,8 @@ void TwitterStream::onReadyRead()
 
 void TwitterStream::onFinished()
 {
-    QMutexLocker locker(&mutex_);
+//    QMutexLocker locker(&mutex_);
+    traceDebug();
 
     running_ = false;
 

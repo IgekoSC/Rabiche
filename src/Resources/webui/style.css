@@ -1,0 +1,61 @@
+.twitt:hover {
+    background-color: #F5F8FA;
+}
+
+.image {
+    height: 253px;
+    width: 100%;
+    background-color: #F5F5F5;
+    overflow: hidden;
+}
+
+.reply {
+    float: left;
+    width: 64px;
+}
+
+.reply .icon {
+    background: url("qrc:/Resources/img/reply.png") no-repeat;
+    height: 16px;
+    width: 19px;
+    float: left;
+    margin-right: 10px;
+}
+
+.reply .icon:hover {
+    background: url("qrc:/Resources/img/reply_hover.png") no-repeat;
+}
+
+.retweet {
+    float: left;
+    width: 64px;
+}
+
+.retweet .icon {
+    background: url("qrc:/Resources/img/retweet.png") no-repeat;
+    height: 16px;
+    width: 19px;
+    float: left;
+    margin-right: 10px;
+}
+
+.retweet .icon:hover {
+    background: url("qrc:/Resources/img/retweet_hover.png") no-repeat;
+}
+
+.favorite {
+    float: left;
+    width: 64px;
+}
+
+.favorite .icon {
+   background: url("qrc:/Resources/img/favorite.png") no-repeat;
+   height: 16px;
+   width: 19px;
+   float: left;
+   margin-right: 10px;
+}
+
+.favorite .icon:hover {
+    background: url("qrc:/Resources/img/favorite_hover.png") no-repeat;
+}

@@ -104,7 +104,7 @@ void Twitter::login()
         loginState_ = 255;
 
     //Start timer for continuous refreshing from REST
-    refreshTimer_->start(1000); //1 sec.
+    refreshTimer_->start(10000); //10 sec.
 }
 
 void Twitter::loguout()
@@ -143,6 +143,8 @@ void Twitter::loguout()
 
 void Twitter::connectToStream(QString uri)
 {
+    traceDebug();
+
     if (this->thread() != QThread::currentThread()) {
         traceDebug() << "Warning: This function has been called from diferent thread!" << flush;
     }

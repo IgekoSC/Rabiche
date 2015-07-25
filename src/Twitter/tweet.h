@@ -41,6 +41,7 @@ public:
     TwitterUser user();
     bool withheldCopyright();
     const QJsonObject &jsonObj();
+    QString htmlText() const;
 
 private:
     QJsonObject obj_;

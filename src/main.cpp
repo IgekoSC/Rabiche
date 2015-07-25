@@ -1,23 +1,23 @@
+#include "mainwindow.h"
 #include <QApplication>
-#include <QQmlApplicationEngine>
-#include <QQmlComponent>
-#include "rabiche.h"
+#include <QDesktopWidget>
+#include <QDebug>
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
+    QCoreApplication::setOrganizationName("Igeko");
+    QCoreApplication::setOrganizationDomain("igeko.es");
+    QCoreApplication::setApplicationName("Rabiche");
+    QApplication a(argc, argv);
 
-    QQmlApplicationEngine engine;
+    MainWindow mainWindow;
+    //Center window
+    QRect screenGeometry = QApplication::desktop()->screenGeometry();
+    int x = (screenGeometry.width()-mainWindow.width()) / 2;
+    int y = (screenGeometry.height()-mainWindow.height()) / 2;
+    mainWindow.move(x, y);
 
-    // Make C++ classes available to QML.
-    qmlRegisterType<Rabiche>("rabiche", 1, 0, "Rabiche");
+    mainWindow.show();
 
-    QQmlComponent component(&engine, QUrl(QStringLiteral("qrc:/Resources/qml/main.qml")));
-    QObject* componentObj = component.create();
-
-//    Rabiche rabiche(componentObj);
-
-    return app.exec();
-
-    delete componentObj;
+    return a.exec();
 }

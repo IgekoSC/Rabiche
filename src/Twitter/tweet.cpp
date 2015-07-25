@@ -172,4 +172,9 @@ const QJsonObject &Tweet::jsonObj()
 {
     return obj_;
 }
+QString Tweet::htmlText() const
+{
+    return htmlText_;
+}
+
 
