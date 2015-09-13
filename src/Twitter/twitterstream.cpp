@@ -77,7 +77,7 @@ void TwitterStream::onReadyRead()
 void TwitterStream::onFinished()
 {
 //    QMutexLocker locker(&mutex_);
-    traceDebug();
+    traceDebug() << buffer_ << endl << networkReply_->errorString();
 
     running_ = false;
 

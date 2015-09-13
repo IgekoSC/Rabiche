@@ -14,11 +14,6 @@ public:
     Q_INVOKABLE QMap<QString, QVariant> newHtmlTweets();
     Q_INVOKABLE QMap<QString, QVariant> newOfflineHtmlTweets();
 
-signals:
-    void newTweets();
-    void updateTweets();
-    void newOfflineTweets();
-
 private slots:
     void onNewTweets(TweetsMap tweets);
     void onNewOfflineTweets(TweetsMap tweets);
@@ -34,9 +29,13 @@ private:
     QMap<QString, QVariant> htmlTweets_;
     QMap<QString, QVariant> newHtmlTweets_;
     QMap<QString, QVariant> newOfflineHtmlTweets_;
+    int page_;
+    int pageSize_;
 
     void init();
     QMap<QString, QVariant> twittsToHtml(TweetsMap twitts);
+    QString htmlPagination();
+    void goToPage(int page);
 
 };
 

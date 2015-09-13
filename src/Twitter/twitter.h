@@ -33,9 +33,10 @@ public:
     explicit Twitter(QString name, QObject *parent = 0);
     ~Twitter();
 
-    const TweetsMap &tweets(int page = 0, int pageSize = 0);
+    const TweetsMap &tweets(int page = 0, int pageSize = 100);
     unsigned char loginState();
     unsigned char streamConnectionState();
+    int tweetsCount();
 
 public slots:
     void login();
@@ -62,7 +63,7 @@ private:
     qint64 newest_id_;
     qint64 oldest_id_;
     TweetsMap tweets_;
-    TweetsMap tweetsPage_;
+    TweetsMap pageTweets_;
     TwitterStream* stream_;
     QMutex mutex_;
     unsigned char loginState_;
@@ -70,6 +71,8 @@ private:
     QTimer* refreshTimer_;
     unsigned char refeshCount_;
     qint64 lastRefreshedTweetId_;
+    int currentPage_;
+    int pageSize_;
 
     QJsonArray homeTimeline(qint64 max_id = 0, qint64 since_id = 0, int count = 200);
     void updateTweetsCache(const TweetsMap &tweets);

@@ -21,12 +21,15 @@ Twitter::Twitter(QString name, QObject *parent) :
     streamConnectionState_ = 0;
 
     refreshTimer_ = new QTimer(this);
-    connect(refreshTimer_, SIGNAL(timeout()), this, SLOT(onRefreshTimerTimeout()));
+//    connect(refreshTimer_, SIGNAL(timeout()), this, SLOT(onRefreshTimerTimeout()));
 
     lastRefreshedTweetId_ = 0;
 
     oldest_id_ = 0;
     newest_id_ = 0;
+
+    currentPage_ = 0;
+    pageSize_ = 0;
 }
 
 Twitter::~Twitter()
@@ -40,34 +43,44 @@ const TweetsMap &Twitter::tweets(int page, int pageSize)
 {
     QMutexLocker locker(&mutex_);
 
+    currentPage_ = page;
+    pageSize_ = pageSize;
+
+    pageTweets_.clear();
+
+    if (tweets_.size() == 0) {
+        currentPage_ = 0;
+        return tweets_;
+    }
+
     if (pageSize == 0) {
+        currentPage_ = 0;
         return tweets_;
     } else {
-        //Inver order
-        page = tweets_.size() / pageSize - page;
-
-        //If page is not valid, return last page
-        if (page < 0)
-            return tweetsPage_;
-
-        //Get page content
+        int nPages = tweets_.size() / pageSize;
+        //Check for not valid page
+        if (nPages == 0) {
+            page = 0;
+            currentPage_ = 0;
+        }
+        //Get page items
         QMapIterator<qint64, Tweet> i(tweets_);
-        int start = page * pageSize;
+        i.toBack();
         int c = 0;
-        while ((i.hasNext()) && (c < start)) {
-            i.next();
+        int nPage = 0;
+        while (i.hasPrevious() && (nPage <= page)) {
+            i.previous();
+            if (nPage == page) {
+                Tweet tweet(i.value());
+                pageTweets_.insert(tweet.id(), tweet);
+            }
             c++;
-        }
-        tweetsPage_.clear();
-        c = 0;
-        while ((i.hasNext()) && (c < pageSize)) {
-            Tweet tweet(i.value());
-            tweetsPage_.insert(tweet.id(), tweet);
-            i.next();
-            c++;
+            if ((c%pageSize) == 0) {
+                nPage++;
+            }
         }
 
-        return tweetsPage_;
+        return pageTweets_;
     }
 }
 
@@ -116,8 +129,6 @@ void Twitter::login()
     }
 
     updateIds();
-    if (!tweets_.empty())
-        lastRefreshedTweetId_ = tweets_.first().id();
 
     traceDebug() << QString::number(tweets_.size()) + " twitts loaded." << flush;
 
@@ -131,8 +142,21 @@ void Twitter::login()
     else
         loginState_ = 255;
 
+    int refreshTime = 10000; //Program first refresh on 10 sec.
+
+    //If there are less than 200 tweets, get up to 200 from home timeline
+    if (tweets_.size() < 200) {
+        QJsonArray arr = homeTimeline(0, 0, 200);
+        for (int i = arr.count() - 1; i >= 0; --i) {
+            Tweet tweet(arr[i].toObject());
+            tweets_.insert(tweet.id(), tweet);
+        }
+        updateIds();
+        refreshTime = 60000; //Program first refresh on 1 min.
+    }
+
     //Start timer for continuous refreshing from REST
-    refreshTimer_->start(10000); //10 sec.
+    refreshTimer_->start(refreshTime);
 }
 
 void Twitter::loguout()
@@ -203,12 +227,10 @@ void Twitter::onStreamNewTweets()
     //Store all tweets to db
     updateTweetsCache(tweets);
 
-    if (lastRefreshedTweetId_ == 0)
-        lastRefreshedTweetId_ = tweets_.first().id();
+    traceDebug() << tweets.count() << " new tweets " << currentPage_;
 
-    traceDebug() << tweets.count() << " new tweets";
-
-    emit newTweets(tweets);
+    if (currentPage_ == 0)
+        emit newTweets(tweets);
 
     mutex_.unlock();
 }
@@ -234,6 +256,12 @@ unsigned char Twitter::streamConnectionState()
 {
     QMutexLocker locker(&mutex_);
     return streamConnectionState_;
+}
+
+int Twitter::tweetsCount()
+{
+    QMutexLocker locker(&mutex_);
+    return tweets_.size();
 }
 
 unsigned char Twitter::loginState()
@@ -286,8 +314,17 @@ void Twitter::updateTweetsData()
 {
     traceDebug();
 
+    if (lastRefreshedTweetId_ == 0) {
+        if (tweets_.size() == 0) {
+            traceDebug() << "Nothing to update";
+            return;
+        }
+
+        lastRefreshedTweetId_ = tweets_.first().id();
+    }
+
     //Get up to 6 x 100 tweets to update status
-    TweetsMap tweets;
+    TweetsMap udatedTweets;
     for (int i = 0; (i < 6) && (lastRefreshedTweetId_ != tweets_.last().id()); ++i) {
         //Get up to 100 tweets to update status
         QStringList ids;
@@ -303,19 +340,21 @@ void Twitter::updateTweetsData()
         QJsonArray arr = QJsonDocument::fromJson(req_->doAuthorizedRequest(shr_, TWITTER_REST_LOOKUP_URI, params)).array();
         foreach (QJsonValue val, arr) {
             Tweet tweet(val.toObject());
-            tweets.insert(tweet.id(), tweet);
+            udatedTweets.insert(tweet.id(), tweet);
+            tweets_.insert(tweet.id(), tweet);
         }
     }
 
     if (lastRefreshedTweetId_ == tweets_.last().id())
         lastRefreshedTweetId_ = tweets_.first().id();
 
-    if (!tweets.empty()) {
-        updateTweetsCache(tweets);
-        emit newTweets(tweets);
+    if (!udatedTweets.empty()) {
+        updateTweetsCache(udatedTweets);
+        if (pageTweets_.contains(udatedTweets.first().id()) || (pageSize_ == 0))
+            emit newTweets(udatedTweets);
     }
 
-    traceDebug() << tweets.count() << " tweets updated";
+    traceDebug() << udatedTweets.count() << " tweets updated";
 }
 
 void Twitter::recoverOfflineTweets()
@@ -324,7 +363,6 @@ void Twitter::recoverOfflineTweets()
 
     TweetsMap tweets;
     qint64 newestId = 0;
-
     //Recover all tweets from cache
     QSqlQuery query = db_.exec("SELECT * FROM newestIds;");
     if (query.next()) {
@@ -333,7 +371,6 @@ void Twitter::recoverOfflineTweets()
         traceDebug() << "Nothing to recover";
         return;
     }
-
     //Get up to 200 tweets from home timeline
     QJsonArray arr = homeTimeline(0, newestId);
     for (int i = arr.count() - 1; i >= 0; --i){
@@ -344,6 +381,8 @@ void Twitter::recoverOfflineTweets()
         } else {
             tweets.insert(tweet.id(), tweet);
             tweets_.insert(tweet.id(), tweet);
+            if (pageSize_)
+                pageTweets_.insert(tweet.id(), tweet);
         }
     }
 

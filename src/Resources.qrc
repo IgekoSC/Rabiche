@@ -15,5 +15,7 @@
         <file>Resources/webui/jquery.lazyload.min.js</file>
         <file>Resources/webui/main.js</file>
         <file>Resources/img/blank.png</file>
+        <file>Resources/img/icon.png</file>
+        <file>Resources/img/icon.ico</file>
     </qresource>
 </RCC>
