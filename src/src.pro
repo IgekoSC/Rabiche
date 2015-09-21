@@ -27,8 +27,8 @@ SOURCES += main.cpp \
     o1/o1.cpp \
     o1/o1twitter.cpp \
     o1/signedrequester.cpp \
-    rabiche.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    twitterhtmlbridge.cpp
 
 HEADERS += \
     Twitter/tweet.h \
@@ -51,8 +51,8 @@ HEADERS += \
     o1/o1.h \
     o1/o1twitter.h \
     o1/signedrequester.h \
-    rabiche.h \
-    mainwindow.h
+    mainwindow.h \
+    twitterhtmlbridge.h
 
 RESOURCES += \
     Resources.qrc

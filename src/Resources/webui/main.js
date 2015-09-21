@@ -23,7 +23,11 @@ function imgBindings(element) {
                 $(this).children('img').css('top', 0);
                 $(this).children('img').css('-webkit-transform', 'translate(0, 0)');
             } else {
-                $(this).css('height', 253);
+                var imgContHeight = window.innerHeight * 0.5;
+                if (imgContHeight < 253)
+                    imgContHeight = 253;
+
+                $(this).css('height', imgContHeight);
                 $(this).children('img').css('top', '50%');
                 $(this).children('img').css('-webkit-transform', 'translate(0, -50%)');
             }
@@ -77,7 +81,28 @@ function onNewOfflineTweets() {
 function init() {
     resizeContent();
     imgBindings($(".container"));
+
+    $('#toolbox-head').click(function(e) {
+        var bottom = (window.innerHeight - $('#toolbox').position().top - $('#toolbox').height());
+        if (bottom < 0)
+            $('#toolbox').css('bottom', 0);
+        else
+            $('#toolbox').css('bottom', $('#toolbox-content').height() * -1);
+    });
 }
+
+function countChar(val){
+    var chars = 140 - val.value.length;
+    $('#char-count').text(chars);
+
+    if (chars > 0) {
+        $('#char-count').css('color', 'green');
+    } else if (chars < -140) {
+        $('#char-count').css('color', 'red');
+    } else {
+        $('#char-count').css('color', 'orange');
+    }
+};
 
 $(window).resize(function() {
     resizeContent();

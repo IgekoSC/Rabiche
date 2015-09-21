@@ -28,6 +28,7 @@
     height: auto !important;
     top: 50%;
     -webkit-transform: translate(0, -50%);
+    cursor: pointer;
 }
 
 .reply {
@@ -79,4 +80,49 @@
 
 .favorite .icon:hover {
     background: url("qrc:/Resources/img/favorite_hover.png") no-repeat;
+}
+
+.container {
+    margin-bottom: 150px;
+}
+
+#toolbox {
+    height: 182px;
+    width: 100%;
+    position: fixed;
+    bottom: -150;
+}
+
+#toolbox-head {
+    background: white;
+/*    text-align: center;*/
+    cursor: pointer;
+}
+
+#write-tweet {
+    color: #62A9E1;
+    font-size: 32px;
+}
+
+#toolbox-content {
+    background: white;
+    height: 155px;
+    width: 100%;
+    padding: 5px;
+}
+
+#tweet-text-box {
+    height: 105px;
+    margin-bottom: 5px;
+}
+
+#char-count {
+    color: green;
+    font-weight: bold;
+    float: left;
+    margin-top: 5px;
+}
+
+#toolbox-content .btn {
+    float: right;
 }
