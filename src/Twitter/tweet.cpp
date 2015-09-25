@@ -25,7 +25,7 @@ Tweet::Tweet(const QJsonObject &jsonObj)
 
 //    }
     foreach (TwitterUrl url, entities_.urls()) {
-        htmlText_.replace(url.url(), "<a href=\"" + url.expandedUrl() + "\">" + url.url() + "</a>");
+        htmlText_.replace(url.url(), "<a href=\"" + url.expandedUrl() + "\">" + url.displayUrl() + "</a>");
     }
     foreach (TwitterUserMention userMention, entities_.userMentions()) {
         htmlText_.replace("@" + userMention.screenName(), "<a href=\"user://" + userMention.screenName() + "\">@" + userMention.screenName() + "</a>");
