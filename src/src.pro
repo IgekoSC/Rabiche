@@ -28,7 +28,10 @@ SOURCES += main.cpp \
     o1/o1twitter.cpp \
     o1/signedrequester.cpp \
     mainwindow.cpp \
-    twitterhtmlbridge.cpp
+    twitterhtmlbridge.cpp \
+    wgtnewtweet.cpp \
+    Twitter/twitterconfiguration.cpp \
+    Twitter/twitterstatus.cpp
 
 HEADERS += \
     Twitter/tweet.h \
@@ -52,7 +55,10 @@ HEADERS += \
     o1/o1twitter.h \
     o1/signedrequester.h \
     mainwindow.h \
-    twitterhtmlbridge.h
+    twitterhtmlbridge.h \
+    wgtnewtweet.h \
+    Twitter/twitterconfiguration.h \
+    Twitter/twitterstatus.h
 
 RESOURCES += \
     Resources.qrc

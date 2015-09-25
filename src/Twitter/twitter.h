@@ -18,10 +18,14 @@
 #include <QMutexLocker>
 #include "tweet.h"
 #include "twitterstream.h"
+#include "twitterconfiguration.h"
+#include "twitterstatus.h"
 
-#define TWITTER_USER_STREAM_URI "https://userstream.twitter.com/1.1/user.json"
-#define TWITTER_REST_LOOKUP_URI "https://api.twitter.com/1.1/statuses/lookup.json"
-#define TWITTER_HOME_TIMELINE   "https://api.twitter.com/1.1/statuses/home_timeline.json"
+#define TWITTER_CONFIGURATION_URI "https://api.twitter.com/1.1/help/configuration.json"
+#define TWITTER_USER_STREAM_URI   "https://userstream.twitter.com/1.1/user.json"
+#define TWITTER_REST_LOOKUP_URI   "https://api.twitter.com/1.1/statuses/lookup.json"
+#define TWITTER_HOME_TIMELINE_URI "https://api.twitter.com/1.1/statuses/home_timeline.json"
+#define TWITTER_UPDATE_STATUS_URI "https://api.twitter.com/1.1/statuses/update.json"
 
 #define TWITTER_CUSTOMER_KEY    "qv9DUeDWumhUydA2TDnj7zPk3"
 #define TWITTER_CUSTOMER_SECRET "UO5zz7oVRvrs9USUF7HU52usdqXpYH5Wp6Zs4MelSPTQYtNp8a"
@@ -37,11 +41,15 @@ public:
     unsigned char loginState();
     unsigned char streamConnectionState();
     int tweetsCount();
+    bool autoRefresh();
+    const TwitterConfiguration& twitterConfiguration() const;
 
 public slots:
     void login();
     void loguout();
     void connectToStream(QString uri);
+    void setAutoRefresh(bool autoRefresh);
+    void updateStatus(TwitterStatus status);
 
 signals:
     void newTweets(TweetsMap tweets);
@@ -54,6 +62,7 @@ private slots:
 private:
     QSqlDatabase db_;
     SqlSettings* settings_;
+    TwitterConfiguration twitterConfiguration_;
     QDir dataDir_;
     QDir cacheJsonDir_;
     QDir cacheMediaDir_;

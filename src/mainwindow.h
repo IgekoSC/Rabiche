@@ -4,8 +4,13 @@
 #include <QMainWindow>
 #include <QWebView>
 #include <QSplitter>
+#include <QDockWidget>
+#include <QMenuBar>
+#include <QMenu>
+#include <QAction>
 #include <Twitter/twitter.h>
-#include <twitterhtmlbridge.h>
+#include "twitterhtmlbridge.h"
+#include "wgtnewtweet.h"
 
 class MainWindow : public QMainWindow
 {
@@ -15,10 +20,18 @@ public:
     ~MainWindow();
 
 private:
+    QSqlDatabase db_;
+    SqlSettings* settings_;
     Twitter* twitter_;
     QThread* thread_;
     QWebView* webView_;
     TwitterHtmlBridge* htmlBridge_;
+
+    //GUI
+    QDockWidget* newTweetDock_;
+    WgtNewTweet* wgtNewTweet_;
+    QMenu* mnuWindows_;
+    QAction* actShowNewTweet_;
 
 };
 

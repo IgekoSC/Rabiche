@@ -1,5 +1,6 @@
 #include <QDebug>
 #include <QCoreApplication>
+#include <QDateTime>
 #include "twitter.h"
 
 #define traceDebug() qDebug() << QThread::currentThreadId() << __PRETTY_FUNCTION__
@@ -8,6 +9,7 @@ Twitter::Twitter(QString name, QObject *parent) :
     QObject(parent)
 {
     qRegisterMetaType<TweetsMap>("TweetsMap");
+    qRegisterMetaType<TwitterStatus>("TwitterStatus");
 
     setObjectName(name);
 
@@ -21,7 +23,7 @@ Twitter::Twitter(QString name, QObject *parent) :
     streamConnectionState_ = 0;
 
     refreshTimer_ = new QTimer(this);
-//    connect(refreshTimer_, SIGNAL(timeout()), this, SLOT(onRefreshTimerTimeout()));
+    connect(refreshTimer_, SIGNAL(timeout()), this, SLOT(onRefreshTimerTimeout()));
 
     lastRefreshedTweetId_ = 0;
 
@@ -155,8 +157,21 @@ void Twitter::login()
         refreshTime = 60000; //Program first refresh on 1 min.
     }
 
-    //Start timer for continuous refreshing from REST
-    refreshTimer_->start(refreshTime);
+    //Setup timer for continuous refreshing from REST
+    refreshTimer_->setInterval(refreshTime);
+
+    //Request for Twitter configuration
+    QVariant lastConfRequest = settings_->value("lastConfigurationJsonRequest");
+    QString day = QString::number(QDateTime::currentMSecsSinceEpoch() / 86400000);
+    if (lastConfRequest.isNull() || (day != lastConfRequest.toString())) {
+        settings_->setValue("lastConfigurationJsonRequest", day);
+        QByteArray configuration = req_->doAuthorizedRequest(shr_, TWITTER_CONFIGURATION_URI);
+        settings_->setValue("configurationJson", QString(configuration));
+        twitterConfiguration_ = TwitterConfiguration(QJsonDocument::fromJson(configuration).object());
+    } else {
+        QByteArray configuration = settings_->value("configurationJson").toByteArray();
+        twitterConfiguration_ = TwitterConfiguration(QJsonDocument::fromJson(configuration).object());
+    }
 }
 
 void Twitter::loguout()
@@ -209,6 +224,24 @@ void Twitter::connectToStream(QString uri)
         streamConnectionState_ = 255;
 }
 
+void Twitter::setAutoRefresh(bool autoRefresh)
+{
+    QMutexLocker locker(&mutex_);
+
+    if (autoRefresh && (loginState_ == 1) && (refreshTimer_->interval() != 0)) {
+        refreshTimer_->start();
+    } else if (!autoRefresh && refreshTimer_->isActive()) {
+        refreshTimer_->stop();
+    }
+}
+
+void Twitter::updateStatus(TwitterStatus status)
+{
+    QMutexLocker locker(&mutex_);
+
+    req_->doAuthorizedRequest(shr_, TWITTER_UPDATE_STATUS_URI, status.params(), "POST");
+}
+
 void Twitter::onStreamNewTweets()
 {
     if (!mutex_.tryLock(100))
@@ -252,6 +285,17 @@ void Twitter::onRefreshTimerTimeout()
     refreshTimer_->setInterval(60000); //1 min.
 }
 
+const TwitterConfiguration& Twitter::twitterConfiguration() const
+{
+    return twitterConfiguration_;
+}
+
+bool Twitter::autoRefresh()
+{
+    QMutexLocker locker(&mutex_);
+    return refreshTimer_->isActive();
+}
+
 unsigned char Twitter::streamConnectionState()
 {
     QMutexLocker locker(&mutex_);
@@ -281,7 +325,7 @@ QJsonArray Twitter::homeTimeline(qint64 max_id, qint64 since_id, int count)
     }
     params.insert("count", QString::number(count));
 
-    QJsonArray jsonTweets = QJsonDocument::fromJson(req_->doAuthorizedRequest(shr_, TWITTER_HOME_TIMELINE, params)).array();
+    QJsonArray jsonTweets = QJsonDocument::fromJson(req_->doAuthorizedRequest(shr_, TWITTER_HOME_TIMELINE_URI, params)).array();
 
     return jsonTweets;
 }
