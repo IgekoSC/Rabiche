@@ -1,13 +1,13 @@
 Welcome to Rabiche!
 ===================
 
-**Rabiche is a multiplatform Twitter client** for Desktop, focused on simplicity and usability. Its an **Open Source** project under **MIT License**.
+**Rabiche is a multiplatform Twitter client** for Desktop, focused on simplicity and usability. It's an **Open Source** project under **MIT License**.
 
 
 Supported platforms
 -------------
 
-**Rabiche** could be easily compiled for this platforms:
+**Rabiche** could be easily compiled for these platforms:
 
  - Any GNU/Linux distribution
  - Windows 7, 8, 8.1 and 10
@@ -28,8 +28,6 @@ Compiling
 
 Development status
 -------------
-
-Currently **Rabiche** has some development branches:
 
 Branch    | Description                                       | Status   | Build
 --------- | ------------------------------------------------- | -------- | -------
