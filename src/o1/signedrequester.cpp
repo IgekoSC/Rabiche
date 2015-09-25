@@ -7,7 +7,7 @@ SignedRequester::SignedRequester(O1 *o1, QObject *parent) : QObject(parent), o1_
 
 }
 
-QByteArray SignedRequester::buildAuthorizationHeader(QString url, QMap<QString, QString> params, QString verb)
+QByteArray SignedRequester::buildAuthorizationHeader(QString url, QMap<QString, QString> params, QString verb, QFile *fromFile)
 {
     QMap<QString, QString> headerParameters;
     headerParameters.insert("oauth_token", o1_->getOAuthToken());
@@ -22,11 +22,15 @@ QByteArray SignedRequester::buildAuthorizationHeader(QString url, QMap<QString, 
     QMap<QString, QString> signatureParameters;
     QStringList keys = headerParameters.keys();
     foreach (QString key, keys) {
-        signatureParameters.insert(key, headerParameters[key]);
+        if ((fromFile == 0) || (key.startsWith("oauth_")))
+            signatureParameters.insert(key, headerParameters[key]);
     }
-    keys = params.keys();
-    foreach (QString key, keys) {
-        signatureParameters.insert(key, params[key]);
+
+    if (fromFile == 0) {
+        keys = params.keys();
+        foreach (QString key, keys) {
+            signatureParameters.insert(key, params[key]);
+        }
     }
 
     //Sign
@@ -35,7 +39,7 @@ QByteArray SignedRequester::buildAuthorizationHeader(QString url, QMap<QString, 
     return o1_->buildAuthorizationHeader(headerParameters);
 }
 
-QByteArray SignedRequester::doAuthorizedRequest(SynchronousHttpRequest* shr, QString url, QMap<QString, QString> params, QString verb)
+QByteArray SignedRequester::doAuthorizedRequest(SynchronousHttpRequest* shr, QString url, QMap<QString, QString> params, QString verb, QFile *fromFile)
 {
     QString paramsStr;
     if ((params.size() > 0) && (verb == "GET")) {
@@ -52,10 +56,13 @@ QByteArray SignedRequester::doAuthorizedRequest(SynchronousHttpRequest* shr, QSt
     }
 
     shr->reset();
-    shr->setRawHeader("Authorization", buildAuthorizationHeader(url, params, verb));
+    shr->setRawHeader("Authorization", buildAuthorizationHeader(url, params, verb, fromFile));
 
     if (verb == "POST") {
-        return shr->post(url, params);
+        if (fromFile == 0)
+            return shr->post(url, params);
+        else
+            return shr->post(url, params, fromFile);
     } else {
         return shr->get(url + paramsStr);
     }
