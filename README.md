@@ -19,8 +19,8 @@ As currently we don't have binary versions, you would have to compile it yoursel
 Compiling
 -------------------
 
- - Clone current source code
- - Open project using Qt Creator with latest Qt Framework version
+ - Clone the current source code
+ - Open the project using Qt Creator with the latest Qt Framework version
  - Compile it using Qt Creator
 
 > **Note:** Later we'll add more precise instructions for compiling, when we arrive beta version.
