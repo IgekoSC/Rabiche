@@ -1,10 +1,10 @@
 before_install:
-    - sudo add-apt-repository --yes ppa:beineri/opt-qt55
+    - sudo add-apt-repository --yes ppa:beineri/opt-qt56
     - sudo apt-get update -qq
     - sudo apt-get install -qq qt-latest
 
 script:
-    - source /opt/qt55/bin/qt55-env.sh
+    - source /opt/qt56/bin/qt56-env.sh
     - qmake -v
     - qmake
     - make
