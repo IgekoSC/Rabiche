@@ -1,6 +1,7 @@
 #include <QDebug>
 #include <QCoreApplication>
 #include <QDateTime>
+#include <QFile>
 #include "twitter.h"
 
 #define traceDebug() qDebug() << QThread::currentThreadId() << __PRETTY_FUNCTION__
@@ -235,11 +236,22 @@ void Twitter::setAutoRefresh(bool autoRefresh)
     }
 }
 
-void Twitter::updateStatus(TwitterStatus status)
+void Twitter::updateStatus(TwitterStatus status, QStringList mediaPaths)
 {
     QMutexLocker locker(&mutex_);
 
-    req_->doAuthorizedRequest(shr_, TWITTER_UPDATE_STATUS_URI, status.params(), "POST");
+    QStringList medias;
+
+    foreach (QString mediaPath, mediaPaths) {
+        QFile file(mediaPath);
+        QJsonObject obj = QJsonDocument::fromJson(req_->doAuthorizedRequest(shr_, TWITTER_MEDIA_UPLOAD, QMap<QString, QString>(), "POST", &file)).object();
+
+        medias.append(obj.value("media_id_string").toString());
+    }
+
+    status.setMediaIds(medias.join(","));
+
+    qDebug() << req_->doAuthorizedRequest(shr_, TWITTER_UPDATE_STATUS_URI, status.params(), "POST");
 }
 
 void Twitter::onStreamNewTweets()

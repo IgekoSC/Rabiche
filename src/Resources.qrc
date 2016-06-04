@@ -18,5 +18,6 @@
         <file>Resources/img/icon.png</file>
         <file>Resources/img/icon.ico</file>
         <file>Resources/img/tweet.png</file>
+        <file>Resources/img/photo.png</file>
     </qresource>
 </RCC>

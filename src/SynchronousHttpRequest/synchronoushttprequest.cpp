@@ -94,7 +94,7 @@ const QByteArray &SynchronousHttpRequest::post(const QUrl &url, const QMap<QStri
     QMimeDatabase mimedb;
 
     QHttpPart filePart;
-    filePart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"file\"; filename=\""+fromFile_->fileName().section('/',-1)+"\""));
+    filePart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"media\"; filename=\""+fromFile_->fileName().section('/',-1)+"\""));
     filePart.setHeader(QNetworkRequest::ContentLengthHeader, QString("%1").arg(fi.size()));
     filePart.setHeader(QNetworkRequest::ContentTypeHeader, mimedb.mimeTypeForFile(fi).name());
     filePart.setRawHeader("Content-Transfer-Encoding", "binary");

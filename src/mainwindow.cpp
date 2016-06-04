@@ -34,8 +34,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
         qDebug() << "Login fail: " << twitter_->loginState() << flush;
         return;
     }
-    QMetaObject::invokeMethod(twitter_, "setAutoRefresh", Q_ARG(bool, false));
-    //QMetaObject::invokeMethod(twitter_, "connectToStream", Q_ARG(QString, TWITTER_USER_STREAM_URI));
+    QMetaObject::invokeMethod(twitter_, "setAutoRefresh", Q_ARG(bool, true));
+    QMetaObject::invokeMethod(twitter_, "connectToStream", Q_ARG(QString, TWITTER_USER_STREAM_URI));
 
     webView_ = new QWebView(this);
     webView_->setMinimumSize(800, 600);
@@ -60,7 +60,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     mnuWindows_->addAction(actShowNewTweet_);
 
     //Connections
-    connect(wgtNewTweet_, SIGNAL(updateStatus(TwitterStatus)), twitter_, SLOT(updateStatus(TwitterStatus)));
+    connect(wgtNewTweet_, SIGNAL(updateStatus(TwitterStatus,QStringList)),
+            twitter_,     SLOT(updateStatus(TwitterStatus,QStringList)));
 }
 
 MainWindow::~MainWindow()
